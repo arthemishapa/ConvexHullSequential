@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConvexHullParallel.cs" />
     <Compile Include="ConvexHull.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -52,6 +53,18 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="1ActualOutput.txt" />
+    <Content Include="2ActualOutput.txt" />
+    <Content Include="3ActualOutput.txt" />
+    <Content Include="4ActualOutput.txt" />
+    <Content Include="4TestExpectedOutput.txt" />
+    <Content Include="3TestExpectedOutput.txt" />
+    <Content Include="2TestExpectedOutput.txt" />
+    <Content Include="1TestExpectedOutput.txt" />
+    <Content Include="4TestInput.txt" />
+    <Content Include="3TestInput.txt" />
+    <Content Include="2TestInput.txt" />
+    <Content Include="1TestInput.txt" />
     <Content Include="Input.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
