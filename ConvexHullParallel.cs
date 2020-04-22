@@ -13,8 +13,6 @@ namespace ConvexHullSequentialAndParallel
     {
         private const string _projectPath = @"D:\\Faculty\\Semester 2\\PTPP\\ConvexHullSequential\\";
         public List<Point> Points { get; set; } = new List<Point>();
-        private Point LeftMostPoint { get; set; }
-        private Point RightMostPoint { get; set; }
         private string FileName { get; set; }
 
         public ConvexHullParallel(string fileName)
@@ -52,8 +50,6 @@ namespace ConvexHullSequentialAndParallel
             Stopwatch timer = new Stopwatch();
             timer.Start();
             Points = Points.OrderBy(point => point.X).ToList();
-            RightMostPoint = Points[Points.Count() - 1];
-            LeftMostPoint = Points[0];
             Hull convexHull = SolveHull(Points);
             timer.Stop();
             string filePath = _projectPath + "1ActualOutput.txt";
@@ -69,8 +65,6 @@ namespace ConvexHullSequentialAndParallel
             timer = new Stopwatch();
             timer.Start();
             Points = Points.OrderBy(point => point.X).ToList();
-            RightMostPoint = Points[Points.Count() - 1];
-            LeftMostPoint = Points[0];
             convexHull = SolveHull(Points);
             timer.Stop();
             filePath = _projectPath + "2ActualOutput.txt";
@@ -86,8 +80,6 @@ namespace ConvexHullSequentialAndParallel
             timer = new Stopwatch();
             timer.Start();
             Points = Points.OrderBy(point => point.X).ToList();
-            RightMostPoint = Points[Points.Count() - 1];
-            LeftMostPoint = Points[0];
             convexHull = SolveHull(Points);
             timer.Stop();
             filePath = _projectPath + "3ActualOutput.txt";
@@ -103,8 +95,6 @@ namespace ConvexHullSequentialAndParallel
             timer = new Stopwatch();
             timer.Start();
             Points = Points.OrderBy(point => point.X).ToList();
-            RightMostPoint = Points[Points.Count() - 1];
-            LeftMostPoint = Points[0];
             convexHull = SolveHull(Points);
             timer.Stop();
             filePath = _projectPath + "4ActualOutput.txt";
@@ -186,21 +176,18 @@ namespace ConvexHullSequentialAndParallel
             bool finishedUpperTangent = false;
             while (!finishedUpperTangent)
             {
-                List<Point> newExtendedLine = ExtendLine(leftHull.Points[currentLeftIndex], rightHull.Points[currentRightIndex]);
-                while (!isUpperTangentForPolygon(newExtendedLine[0], newExtendedLine[1], rightHull.Points.Where(point => point.X != rightHull.Points[currentRightIndex].X && point.Y != rightHull.Points[currentRightIndex].Y).ToList()))
+                while (!isUpperTangentForPolygon(leftHull.Points[currentLeftIndex], rightHull.Points[currentRightIndex], rightHull.Points.Where(point => point.X != rightHull.Points[currentRightIndex].X && point.Y != rightHull.Points[currentRightIndex].Y).ToList()))
                 {
                     rightIndexChanged = true;
                     int nextIndex = currentRightIndex == rightHull.Points.Count() - 1 ? 0 : currentRightIndex + 1;
                     currentRightIndex = nextIndex;
-                    newExtendedLine = ExtendLine(leftHull.Points[currentLeftIndex], rightHull.Points[currentRightIndex]);
                 }
 
-                while (!isUpperTangentForPolygon(newExtendedLine[0], newExtendedLine[1], leftHull.Points.Where(point => point.X != leftHull.Points[currentLeftIndex].X && point.Y != leftHull.Points[currentLeftIndex].Y).ToList()))
+                while (!isUpperTangentForPolygon(leftHull.Points[currentLeftIndex], rightHull.Points[currentRightIndex], leftHull.Points.Where(point => point.X != leftHull.Points[currentLeftIndex].X && point.Y != leftHull.Points[currentLeftIndex].Y).ToList()))
                 {
                     leftIndexChanged = true;
                     int prevIndex = currentLeftIndex == 0 ? leftHull.Points.Count() - 1 : currentLeftIndex - 1;
                     currentLeftIndex = prevIndex;
-                    newExtendedLine = ExtendLine(leftHull.Points[currentLeftIndex], rightHull.Points[currentRightIndex]);
                 }
 
                 if (!leftIndexChanged && !rightIndexChanged)
@@ -223,21 +210,18 @@ namespace ConvexHullSequentialAndParallel
             bool finishedLowerTangent = false;
             while (!finishedLowerTangent)
             {
-                List<Point> newExtendedLine = ExtendLine(leftHull.Points[currentLeftIndex], rightHull.Points[currentRightIndex]);
-                while (!isLowerTangentForPolygon(newExtendedLine[0], newExtendedLine[1], rightHull.Points.Where(point => point.X != rightHull.Points[currentRightIndex].X && point.Y != rightHull.Points[currentRightIndex].Y).ToList()))
+                while (!isLowerTangentForPolygon(leftHull.Points[currentLeftIndex], rightHull.Points[currentRightIndex], rightHull.Points.Where(point => point.X != rightHull.Points[currentRightIndex].X && point.Y != rightHull.Points[currentRightIndex].Y).ToList()))
                 {
                     rightIndexChanged = true;
                     int nextIndex = currentRightIndex == rightHull.Points.Count() - 1 ? 0 : currentRightIndex + 1;
                     currentRightIndex = nextIndex;
-                    newExtendedLine = ExtendLine(leftHull.Points[currentLeftIndex], rightHull.Points[currentRightIndex]);
                 }
 
-                while (!isLowerTangentForPolygon(newExtendedLine[0], newExtendedLine[1], leftHull.Points.Where(point => point.X != leftHull.Points[currentLeftIndex].X && point.Y != leftHull.Points[currentLeftIndex].Y).ToList()))
+                while (!isLowerTangentForPolygon(leftHull.Points[currentLeftIndex], rightHull.Points[currentRightIndex], leftHull.Points.Where(point => point.X != leftHull.Points[currentLeftIndex].X && point.Y != leftHull.Points[currentLeftIndex].Y).ToList()))
                 {
                     leftIndexChanged = true;
                     int prevIndex = currentLeftIndex == 0 ? leftHull.Points.Count() - 1 : currentLeftIndex - 1;
                     currentLeftIndex = prevIndex;
-                    newExtendedLine = ExtendLine(leftHull.Points[currentLeftIndex], rightHull.Points[currentRightIndex]);
                 }
 
                 if (!leftIndexChanged && !rightIndexChanged)
@@ -256,7 +240,7 @@ namespace ConvexHullSequentialAndParallel
             for (int i = 0; i <= upperLeft; i++)
             {
                 result.Add(leftHull.Points[i]);
-            } 
+            }
 
             for (int i = upperRight; i != lowerRight; i++)
             {
@@ -327,25 +311,6 @@ namespace ConvexHullSequentialAndParallel
             LeftAndRightHalves.Add(points.Take(points.Count / 2).ToList()); //left
             LeftAndRightHalves.Add(points.Skip(points.Count / 2).ToList()); //right
             return LeftAndRightHalves;
-        }
-
-        // Extend the line formed by points A and B to encompass all of the points in the entire Hull
-        private List<Point> ExtendLine(Point A, Point B)
-        {
-            // A line is defined by y=m*x+b
-            // we get the slope (m)
-            double slope = calculateSlope(A, B);
-            // y = slope * (x3 - x1) + y1
-            Point newA = new Point();
-            Point newB = new Point();
-            newA.X = LeftMostPoint.X - 1;
-            newB.X = RightMostPoint.X + 1;
-            newA.Y = slope * (newA.X - A.X) + A.Y;
-            newB.Y = slope * (newB.X - A.X) + A.Y;
-            List<Point> ExtendedLinePointsAB = new List<Point>();
-            ExtendedLinePointsAB.Add(newA);
-            ExtendedLinePointsAB.Add(newB);
-            return ExtendedLinePointsAB;
         }
 
         public double calculateSlope(Point left, Point right)
