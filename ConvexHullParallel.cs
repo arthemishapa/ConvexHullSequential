@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ConvexHullSequentialAndParallel
@@ -13,6 +14,7 @@ namespace ConvexHullSequentialAndParallel
     {
         private const string _projectPath = @"D:\\Faculty\\Semester 2\\PTPP\\ConvexHullSequential\\";
         public List<Point> Points { get; set; } = new List<Point>();
+        //public List<Hull> results { get; set; } = new List
         private string FileName { get; set; }
 
         public ConvexHullParallel(string fileName)
@@ -45,89 +47,388 @@ namespace ConvexHullSequentialAndParallel
             file.Close();
         }
 
-        public void ComputeSequentialConvexHull()
+        public void ComputeParallelConvexHull()
         {
+            #region non-scalable version
+            //Stopwatch timer = new Stopwatch();
+
+            //Points = Points.OrderBy(point => point.X).ToList();
+            //List<List<Point>> sets = DivideHull(Points);
+
+            //Hull rightHalf = new Hull(); 
+            //Hull leftHalf = new Hull();
+            //Thread t1 = new Thread(() => leftHalf = SolveHull(sets[0]));
+            //Thread t2 = new Thread(() => rightHalf = SolveHull(sets[1]));
+            //timer.Start();
+            //t1.Start();
+            //t2.Start();
+
+            //t1.Join();
+            //t2.Join();
+
+            //timer.Stop();
+            //Hull finalResult = MergeHull(leftHalf, rightHalf);
+
+            //string filePath = _projectPath + "1ActualParallelOutput.txt";
+            //using (StreamWriter writer = new StreamWriter(filePath))
+            //{
+            //    foreach (Point p in finalResult.Points)
+            //        writer.WriteLine(p.X + " " + p.Y);
+            //}
+            //Debug.WriteLine("First parallel test finished in: " + timer.Elapsed);
+
+            //FileName = "2TestInput.txt";
+            //ReadFromFile();
+            //timer = new Stopwatch();
+
+            //Thread t3 = new Thread(() => leftHalf = SolveHull(sets[0]));
+            //Thread t4 = new Thread(() => rightHalf = SolveHull(sets[1]));
+            //timer.Start();
+            //t3.Start();
+            //t4.Start();
+
+            //t3.Join();
+            //t4.Join();
+
+            //timer.Stop();
+            //finalResult = MergeHull(leftHalf, rightHalf);
+
+            //filePath = _projectPath + "2ActualParallelOutput.txt";
+            //using (StreamWriter writer = new StreamWriter(filePath))
+            //{
+            //    foreach (Point p in finalResult.Points)
+            //        writer.WriteLine(p.X + " " + p.Y);
+            //}
+            //Debug.WriteLine("Second parallel test finished in: " + timer.Elapsed);
+
+            //FileName = "3TestInput.txt";
+            //ReadFromFile();
+            //timer = new Stopwatch();
+
+            //Thread t5 = new Thread(() => leftHalf = SolveHull(sets[0]));
+            //Thread t6 = new Thread(() => rightHalf = SolveHull(sets[1]));
+            //timer.Start();
+            //t5.Start();
+            //t6.Start();
+
+            //t5.Join();
+            //t6.Join();
+
+            //timer.Stop();
+            //finalResult = MergeHull(leftHalf, rightHalf);
+
+            //filePath = _projectPath + "3ActualParallelOutput.txt";
+            //using (StreamWriter writer = new StreamWriter(filePath))
+            //{
+            //    foreach (Point p in finalResult.Points)
+            //        writer.WriteLine(p.X + " " + p.Y);
+            //}
+            //Debug.WriteLine("Third parallel test finished in: " + timer.Elapsed);
+
+            //FileName = "4TestInput.txt";
+            //ReadFromFile();
+            //timer = new Stopwatch();
+
+            //Thread t7 = new Thread(() => leftHalf = SolveHull(sets[0]));
+            //Thread t8 = new Thread(() => rightHalf = SolveHull(sets[1]));
+            //timer.Start();
+            //t7.Start();
+            //t8.Start();
+
+            //t7.Join();
+            //t8.Join();
+
+            //timer.Stop();
+            //finalResult = MergeHull(leftHalf, rightHalf);
+
+            //filePath = _projectPath + "4ActualParallelOutput.txt";
+            //using (StreamWriter writer = new StreamWriter(filePath))
+            //{
+            //    foreach (Point p in finalResult.Points)
+            //        writer.WriteLine(p.X + " " + p.Y);
+            //}
+            //Debug.WriteLine("Fourth parallel test finished in: " + timer.Elapsed);
+            #endregion non-scalable version
+
+            #region scalable version
+
+            #region Test 1
+            FileName = "1TestInput.txt";
+            ReadFromFile();
+
             Stopwatch timer = new Stopwatch();
-            timer.Start();
+            string filePath = _projectPath + "1ActualParallelOutput.txt";
+
+            double powerOfTwo = Math.Log(Points.Count(), 2);
+            int.TryParse(Math.Truncate(powerOfTwo).ToString(), out int decimalValue);
+            int.TryParse(Math.Truncate(Math.Pow(2, decimalValue)).ToString(), out int numberOfThreads);
             Points = Points.OrderBy(point => point.X).ToList();
-            Hull convexHull = SolveHull(Points);
+            List<List<Point>> pointsForThreads = new List<List<Point>>();
+            pointsForThreads.Add(Points);
+            while (pointsForThreads.Count() < 1)
+            {
+                List<List<Point>> newPointsForThreads = new List<List<Point>>();
+                foreach (List<Point> points in pointsForThreads)
+                {
+                    List<List<Point>> sets = DivideHull(points);
+                    newPointsForThreads.Add(sets[0]);
+                    newPointsForThreads.Add(sets[1]);
+                }
+                pointsForThreads = new List<List<Point>>();
+                pointsForThreads.AddRange(newPointsForThreads);
+            }
+
+            Thread[] threads = new Thread[pointsForThreads.Count()];
+            List<Hull> results = new List<Hull>(pointsForThreads.Count());
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                int index = i;
+                threads[i] = new Thread(() => results.Add(SolveHull(pointsForThreads[index], index)));
+            }
+
+            timer.Start();
+
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                threads[i].Start();
+            }
+
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                threads[i].Join();
+            }
+
+            results = results.OrderBy(x => x.ThreadNr).ToList();
+            Hull finalResult = results[0];
+            for (int i = 1; i < pointsForThreads.Count(); i++)
+            {
+                finalResult = MergeHull(finalResult, results[i], i);
+            }
+
             timer.Stop();
-            string filePath = _projectPath + "1ActualOutput.txt";
+
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                foreach (Point p in convexHull.Points)
+                foreach (Point p in finalResult.Points)
                     writer.WriteLine(p.X + " " + p.Y);
             }
-            Debug.WriteLine("First test finished in: " + timer.Elapsed);
+            Debug.WriteLine("First parallel test finished in: " + timer.Elapsed);
+            #endregion Test 1
 
+            #region Test 2
             FileName = "2TestInput.txt";
             ReadFromFile();
+
             timer = new Stopwatch();
-            timer.Start();
+            filePath = _projectPath + "2ActualParallelOutput.txt";
+
+            powerOfTwo = Math.Log(Points.Count(), 2);
+            int.TryParse(Math.Truncate(powerOfTwo).ToString(), out decimalValue);
+            int.TryParse(Math.Truncate(Math.Pow(2, decimalValue)).ToString(), out numberOfThreads);
             Points = Points.OrderBy(point => point.X).ToList();
-            convexHull = SolveHull(Points);
+            pointsForThreads = new List<List<Point>>();
+            pointsForThreads.Add(Points);
+            while (pointsForThreads.Count() < 1)
+            {
+                List<List<Point>> newPointsForThreads = new List<List<Point>>();
+                foreach (List<Point> points in pointsForThreads)
+                {
+                    List<List<Point>> sets = DivideHull(points);
+                    newPointsForThreads.Add(sets[0]);
+                    newPointsForThreads.Add(sets[1]);
+                }
+                pointsForThreads = new List<List<Point>>();
+                pointsForThreads.AddRange(newPointsForThreads);
+            }
+
+            threads = new Thread[pointsForThreads.Count()];
+            results = new List<Hull>(pointsForThreads.Count());
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                int index = i;
+                threads[i] = new Thread(() => results.Add(SolveHull(pointsForThreads[index], index)));
+            }
+
+            timer.Start();
+
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                threads[i].Start();
+            }
+
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                threads[i].Join();
+            }
+
+            results = results.OrderBy(x => x.ThreadNr).ToList();
+            finalResult = results[0];
+            for (int i = 1; i < pointsForThreads.Count(); i++)
+            {
+                finalResult = MergeHull(finalResult, results[i], i);
+            }
+
             timer.Stop();
-            filePath = _projectPath + "2ActualOutput.txt";
+
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                foreach (Point p in convexHull.Points)
+                foreach (Point p in finalResult.Points)
                     writer.WriteLine(p.X + " " + p.Y);
             }
-            Debug.WriteLine("Second test finished in: " + timer.Elapsed);
+            Debug.WriteLine("Second parallel test finished in: " + timer.Elapsed);
+            #endregion Test 2
 
+            #region Test 3
             FileName = "3TestInput.txt";
             ReadFromFile();
+
             timer = new Stopwatch();
-            timer.Start();
+            filePath = _projectPath + "3ActualParallelOutput.txt";
+
+            powerOfTwo = Math.Log(Points.Count(), 2);
+            int.TryParse(Math.Truncate(powerOfTwo).ToString(), out decimalValue);
+            int.TryParse(Math.Truncate(Math.Pow(2, decimalValue)).ToString(), out numberOfThreads);
             Points = Points.OrderBy(point => point.X).ToList();
-            convexHull = SolveHull(Points);
+            pointsForThreads = new List<List<Point>>();
+            pointsForThreads.Add(Points);
+            while (pointsForThreads.Count() < decimalValue / 8)
+            {
+                List<List<Point>> newPointsForThreads = new List<List<Point>>();
+                foreach (List<Point> points in pointsForThreads)
+                {
+                    List<List<Point>> sets = DivideHull(points);
+                    newPointsForThreads.Add(sets[0]);
+                    newPointsForThreads.Add(sets[1]);
+                }
+                pointsForThreads = new List<List<Point>>();
+                pointsForThreads.AddRange(newPointsForThreads);
+            }
+
+            threads = new Thread[pointsForThreads.Count()];
+            results = new List<Hull>(pointsForThreads.Count());
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                int index = i;
+                threads[i] = new Thread(() => results.Add(SolveHull(pointsForThreads[index], index)));
+            }
+
+            timer.Start();
+
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                threads[i].Start();
+            }
+
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                threads[i].Join();
+            }
+
+            results = results.OrderBy(x => x.ThreadNr).ToList();
+            finalResult = results[0];
+            for (int i = 1; i < pointsForThreads.Count(); i++)
+            {
+                finalResult = MergeHull(finalResult, results[i], i);
+            }
+
             timer.Stop();
-            filePath = _projectPath + "3ActualOutput.txt";
+
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                foreach (Point p in convexHull.Points)
+                foreach (Point p in finalResult.Points)
                     writer.WriteLine(p.X + " " + p.Y);
             }
-            Debug.WriteLine("Third test finished in: " + timer.Elapsed);
+            Debug.WriteLine("Third parallel test finished in: " + timer.Elapsed);
+            #endregion Test 3
 
+            #region Test 4
             FileName = "4TestInput.txt";
             ReadFromFile();
+
             timer = new Stopwatch();
-            timer.Start();
+            filePath = _projectPath + "4ActualParallelOutput.txt";
+
+            powerOfTwo = Math.Log(Points.Count(), 2);
+            int.TryParse(Math.Truncate(powerOfTwo).ToString(), out decimalValue);
+            int.TryParse(Math.Truncate(Math.Pow(2, decimalValue)).ToString(), out numberOfThreads);
             Points = Points.OrderBy(point => point.X).ToList();
-            convexHull = SolveHull(Points);
+            pointsForThreads = new List<List<Point>>();
+            pointsForThreads.Add(Points);
+            while (pointsForThreads.Count() < decimalValue / 4)
+            {
+                List<List<Point>> newPointsForThreads = new List<List<Point>>();
+                foreach (List<Point> points in pointsForThreads)
+                {
+                    List<List<Point>> sets = DivideHull(points);
+                    newPointsForThreads.Add(sets[0]);
+                    newPointsForThreads.Add(sets[1]);
+                }
+                pointsForThreads = new List<List<Point>>();
+                pointsForThreads.AddRange(newPointsForThreads);
+            }
+
+            threads = new Thread[pointsForThreads.Count()];
+            results = new List<Hull>(pointsForThreads.Count());
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                int index = i;
+                threads[i] = new Thread(() => results.Add(SolveHull(pointsForThreads[index], index)));
+            }
+
+            timer.Start();
+
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                threads[i].Start();
+            }
+
+            for (int i = 0; i < pointsForThreads.Count(); i++)
+            {
+                threads[i].Join();
+            }
+
+            results = results.OrderBy(x => x.ThreadNr).ToList();
+            finalResult = results[0];
+            for (int i = 1; i < pointsForThreads.Count(); i++)
+            {
+                finalResult = MergeHull(finalResult, results[i], i);
+            }
+
             timer.Stop();
-            filePath = _projectPath + "4ActualOutput.txt";
+
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                foreach (Point p in convexHull.Points)
+                foreach (Point p in finalResult.Points)
                     writer.WriteLine(p.X + " " + p.Y);
             }
-            Debug.WriteLine("Fourth test finished in: " + timer.Elapsed);
+            Debug.WriteLine("Fourth parallel test finished in: " + timer.Elapsed);
+            #endregion Test 4
+
+            #endregion scalable version
         }
 
-        private Hull SolveHull(List<Point> points)
+        private Hull SolveHull(List<Point> points, int threadNr)
         {
             if (points.Count < 6)
             {
-                Hull result = BruteHull(points);
+                Hull result = BruteHull(points, threadNr);
                 return result;
             }
             else
             {
                 List<List<Point>> sets = DivideHull(points);
 
-                Hull leftHull = SolveHull(sets[0]);
-                Hull rightHull = SolveHull(sets[1]);
+                Hull leftHull = SolveHull(sets[0], threadNr);
+                Hull rightHull = SolveHull(sets[1], threadNr);
 
-                return MergeHull(leftHull, rightHull);
+                return MergeHull(leftHull, rightHull, threadNr);
             }
         }
 
-        private Hull BruteHull(List<Point> hull)
+        private Hull BruteHull(List<Point> hull, int threadNr)
         {
             if (hull.Count() <= 3)
-                return new Hull(hull.Distinct().OrderBy(x => x.X).ToList()); 
+                return new Hull(hull.Distinct().OrderBy(x => x.X).ToList(), threadNr); 
             List<Point> result = new List<Point>();
 
             for (int i = 0; i < hull.Count(); i++)
@@ -151,11 +452,11 @@ namespace ConvexHullSequentialAndParallel
                 }
             }
             if(result.Count() == 0)
-                return new Hull(hull.Distinct().OrderBy(x => x.X).ToList()); ;
-            return new Hull(result.Distinct().OrderBy(x => x.X).ToList());
+                return new Hull(hull.Distinct().OrderBy(x => x.X).ToList(), threadNr);
+            return new Hull(result.Distinct().OrderBy(x => x.X).ToList(), threadNr);
         }
 
-        private Hull MergeHull(Hull leftHull, Hull rightHull)
+        private Hull MergeHull(Hull leftHull, Hull rightHull, int threadNr)
         {
             Hull mergedHull = new Hull();
 
@@ -258,6 +559,7 @@ namespace ConvexHullSequentialAndParallel
                 result.Add(leftHull.Points[i]);
             }
             mergedHull.Points.AddRange(result.Distinct().ToList());
+            mergedHull.ThreadNr = threadNr;
             return mergedHull;
         }
 

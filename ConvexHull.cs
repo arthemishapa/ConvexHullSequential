@@ -320,9 +320,17 @@ namespace ConvexHullSequentialAndParallel
     {
         public List<Point> Points { get; private set; } = new List<Point>();
 
+        public int ThreadNr { get; set; }
+
         public Hull(List<Point> hullPoints)
         {
             Points = hullPoints;
+        }
+
+        public Hull(List<Point> hullPoints, int threadNr)
+        {
+            Points = hullPoints;
+            ThreadNr = threadNr;
         }
 
         public Hull() { }
