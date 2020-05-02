@@ -13,7 +13,8 @@ namespace ConvexHullSequentialAndParallel
             //convexHull.ComputeSequentialConvexHull();
 
             ConvexHullParallel convexHullParallel = new ConvexHullParallel(fileName);
-            convexHullParallel.ComputeParallelConvexHull();
+            convexHullParallel.ComputeParallelTasks();
+            //convexHullParallel.ComputeParallelConvexHull();
         }
     }
 }

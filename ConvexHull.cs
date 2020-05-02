@@ -120,7 +120,6 @@ namespace ConvexHullSequentialAndParallel
                 return MergeHull(leftHull, rightHull);
             }
         }
-
         private Hull BruteHull(List<Point> hull)
         {
             if (hull.Count() <= 3)
@@ -151,7 +150,6 @@ namespace ConvexHullSequentialAndParallel
                 return new Hull(hull.Distinct().OrderBy(x => x.X).ToList()); ;
             return new Hull(result.Distinct().OrderBy(x => x.X).ToList());
         }
-
         private Hull MergeHull(Hull leftHull, Hull rightHull)
         {
             Hull mergedHull = new Hull();
@@ -257,7 +255,6 @@ namespace ConvexHullSequentialAndParallel
             mergedHull.Points.AddRange(result.Distinct().ToList());
             return mergedHull;
         }
-
         private static bool isUpperTangentForPolygon(Point A, Point B, List<Point> polygon)
         {
             if (polygon == null || !polygon.Any()) return false;
@@ -273,7 +270,6 @@ namespace ConvexHullSequentialAndParallel
 
             return true;
         }
-
         private static bool isLowerTangentForPolygon(Point A, Point B, List<Point> polygon)
         {
             if (polygon == null || !polygon.Any()) return false;
@@ -289,7 +285,6 @@ namespace ConvexHullSequentialAndParallel
 
             return true;
         }
-
         private static int GetSide(Point A, Point B, Point queryP)
         {
             // Line AB represented as a1x + b1y + c1 = 0 
@@ -302,7 +297,6 @@ namespace ConvexHullSequentialAndParallel
             return Math.Sign(a1 * queryP.X + b1 * queryP.Y + c1);
             //return Math.Sign((B.X - A.X) * (queryP.Y - A.Y) - (B.Y - A.Y) * (queryP.X - A.X));
         }
-
         private List<List<Point>> DivideHull(List<Point> points)
         {
             List<List<Point>> LeftAndRightHalves = new List<List<Point>>();

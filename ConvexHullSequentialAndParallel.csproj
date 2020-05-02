@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="1ActualOutput.txt" />
+    <Content Include="1ActualParallelOutput.txt" />
     <Content Include="2ActualOutput.txt" />
     <Content Include="2ActualParallelOutput.txt" />
     <Content Include="3ActualOutput.txt" />
